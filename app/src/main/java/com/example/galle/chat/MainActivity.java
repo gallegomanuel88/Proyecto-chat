@@ -14,10 +14,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,6 +29,11 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private WebSocketClient mWebSocketClient;
+    JSONObject envioCliente;
+    String nombreUsuario;
+    String mensaje;
+    boolean privacidad = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,7 +99,8 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            // Handle the camera action
+            //Llamada al metodo webSocket
+            connectWebSocket();
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -151,5 +160,22 @@ public class MainActivity extends AppCompatActivity
             }
         };
         mWebSocketClient.connect();
+    }
+
+    /**
+     * Envia el usuario, el mensaje y la privacidad en forma de JSonObject
+     * @throws JSONException
+     */
+    public void sendMessage() throws JSONException {
+
+        EditText editText = (EditText)findViewById(R.id.message);
+
+        envioCliente = new JSONObject();
+        envioCliente.put("id", nombreUsuario);
+        envioCliente.put("msg", mensaje);
+        envioCliente.put("Privado", privacidad);
+
+        mWebSocketClient.send(editText.getText().toString());
+        editText.setText("");
     }
 }

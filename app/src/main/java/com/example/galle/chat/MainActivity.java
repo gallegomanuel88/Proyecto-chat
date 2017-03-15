@@ -1,9 +1,11 @@
 package com.example.galle.chat;
 
+import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -16,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -56,6 +59,7 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+        nombreUsuario();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
@@ -101,6 +105,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_camera) {
             //Llamada al metodo webSocket
             connectWebSocket();
+            Toast.makeText(MainActivity.this, "Conexion"+nombreUsuario, Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
@@ -178,4 +183,38 @@ public class MainActivity extends AppCompatActivity
         mWebSocketClient.send(editText.getText().toString());
         editText.setText("");
     }
+
+    /**
+     * Crea un AlertDialog con el que introducir el nombre de usuario.
+     * Si no se escribe un nnombre se da por defecto el valor "User Default" a la variable nombreUsuario.
+     */
+    public void nombreUsuario (){
+        final AlertDialog.Builder alertaUsuario = new AlertDialog.Builder(this);
+        alertaUsuario.setTitle("Nombre usuario");
+
+        final EditText nombreUsuario2 = new EditText(this);
+        alertaUsuario.setView(nombreUsuario2);
+
+        alertaUsuario.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if ((nombreUsuario2.getText().toString()).equals("")){
+                    nombreUsuario = "User Default";
+                    Toast.makeText(MainActivity.this, "Conectado como: "+nombreUsuario, Toast.LENGTH_SHORT).show();
+                    connectWebSocket();
+                }
+                else {
+                    nombreUsuario = nombreUsuario2.getText().toString();
+                    Toast.makeText(MainActivity.this, "Conectado como: "+nombreUsuario, Toast.LENGTH_SHORT).show();
+                    //Llamada al metodo webSocket
+                    connectWebSocket();
+                }
+
+            }
+        });
+        alertaUsuario.create();
+        alertaUsuario.show();
+    }
+
+
 }

@@ -1,7 +1,6 @@
 package com.example.galle.chat;
 
 import android.content.DialogInterface;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -21,21 +20,33 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private WebSocketClient mWebSocketClient;
+    WebSocketClient clienteWS;
+
     JSONObject envioCliente;
-    String nombreUsuario;
-    String mensaje;
-    boolean privacidad = true;
+    JSONObject recibidoServidor;
+
+    String nombreUsuario = "manu";
+    String mensaje = "Hola acabo de entrar";
+    boolean privacidad = false;
+
+    String id = "";
+    String getMensaje = "";
+    String dest = "";
+    String checkBox = "";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +115,8 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_camera) {
             //Llamada al metodo webSocket
-            connectWebSocket();
+            //connectWebSocket();
+            nombreUsuario();
             Toast.makeText(MainActivity.this, "Conexion"+nombreUsuario, Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_gallery) {
 
@@ -129,27 +141,37 @@ public class MainActivity extends AppCompatActivity
     private void connectWebSocket() {
         URI uri;
         try {
-            uri = new URI("ws://servidor-android-gallegomanuel88.c9users.io");
+            uri = new URI("ws://servidor-android-gallegomanuel88.c9users.io:8081");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;
         }
 
-        mWebSocketClient = new WebSocketClient(uri) {
+        Map<String, String> headers = new HashMap<>();
+        clienteWS = new WebSocketClient(uri, new Draft_17(), headers, 0){
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 Log.i("Websocket", "Opened");
-                mWebSocketClient.send("Hello from " + Build.MANUFACTURER + " " + Build.MODEL);
+                try {
+                    enviarId();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                //clienteWS.send("Hello from " + Build.MANUFACTURER + " " + Build.MODEL);
             }
 
             @Override
-            public void onMessage(String s) {
-                final String message = s;
+            public void onMessage(final String s) {
+                final String mensajeRecibidoS = s;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        TextView textView = (TextView)findViewById(R.id.messages);
-                        textView.setText(textView.getText() + "\n" + message);
+                        try {
+                            TextView ListaMensajes = (TextView) findViewById(R.id.messages);
+                            ListaMensajes.append(recibeMensaje(mensajeRecibidoS) + "\n");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
             }
@@ -164,29 +186,47 @@ public class MainActivity extends AppCompatActivity
                 Log.i("Websocket", "Error " + e.getMessage());
             }
         };
-        mWebSocketClient.connect();
+        clienteWS.connect();
     }
 
     /**
-     * Envia el usuario, el mensaje y la privacidad en forma de JSonObject
+     * Envia el usuario, el mensaje y la privacidad.
      * @throws JSONException
      */
-    public void sendMessage() throws JSONException {
+    public void enviarId () throws JSONException {
+        envioCliente = new JSONObject();
+        envioCliente.put("id", nombreUsuario);
+        clienteWS.send(envioCliente.toString());
+    }
+
+    public void enviarMensaje(View view) throws JSONException {
 
         EditText editText = (EditText)findViewById(R.id.message);
+        mensaje = editText.getText().toString();
 
         envioCliente = new JSONObject();
         envioCliente.put("id", nombreUsuario);
         envioCliente.put("msg", mensaje);
-        envioCliente.put("Privado", privacidad);
+        envioCliente.put("privado", privacidad);
+        envioCliente.put("dts", "ALL");
 
-        mWebSocketClient.send(editText.getText().toString());
         editText.setText("");
+        clienteWS.send(envioCliente.toString());
+
+    }
+
+    public String recibeMensaje(String s) throws JSONException {
+        recibidoServidor = new JSONObject(s);
+        id = recibidoServidor.getString("id");
+        getMensaje = recibidoServidor.getString("msg");
+
+        String mensaje = id + ": " + getMensaje;
+        return mensaje;
     }
 
     /**
      * Crea un AlertDialog con el que introducir el nombre de usuario.
-     * Si no se escribe un nnombre se da por defecto el valor "User Default" a la variable nombreUsuario.
+     * Si no se escribe un nombre se da por defecto el valor "User Default" a la variable nombreUsuario.
      */
     public void nombreUsuario (){
         final AlertDialog.Builder alertaUsuario = new AlertDialog.Builder(this);

@@ -25,12 +25,6 @@
         android:layout_alignBottom="@+id/enviar"
         android:hint="Escribe aquí tu mensaje"/>
 
-    <EditText
-        android:id="@+id/userDest"
-        android:layout_width="290dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/message"
-        android:hint="Escribe el nombre del usuario"/>
 
     <Button
         android:id="@+id/enviar"
@@ -39,15 +33,7 @@
         android:text="Enviar"
         android:layout_toRightOf="@+id/message"
         android:layout_below="@+id/messages"
-        android:onClick="sendMessage"/>
-
-    <CheckBox
-        android:id="@+id/smsPrivado"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/enviar"
-        android:layout_toRightOf="@+id/userDest"
-        android:layout_toEndOf="@+id/userDest"/>
+        android:onClick="enviarMensaje"/>
 
 
 </RelativeLayout>

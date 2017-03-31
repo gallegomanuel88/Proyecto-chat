@@ -7,7 +7,6 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.galle.chat.MainActivity"
     tools:showIn="@layout/app_bar_main">
-
     <TextView
         android:id="@+id/messages"
         android:layout_width="368dp"
@@ -16,7 +15,6 @@
         android:width="200px"
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="8dp" />
-
     <EditText
         android:id="@+id/message"
         android:layout_width="290dp"
@@ -24,8 +22,6 @@
         android:layout_below="@+id/messages"
         android:layout_alignBottom="@+id/enviar"
         android:hint="Escribe aquí tu mensaje"/>
-
-
     <Button
         android:id="@+id/enviar"
         android:layout_width="wrap_content"
@@ -34,6 +30,4 @@
         android:layout_toRightOf="@+id/message"
         android:layout_below="@+id/messages"
         android:onClick="enviarMensaje"/>
-
-
 </RelativeLayout>

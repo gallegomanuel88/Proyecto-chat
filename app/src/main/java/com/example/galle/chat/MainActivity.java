@@ -33,20 +33,12 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     WebSocketClient clienteWS;
-
-    JSONObject envioCliente;
-    JSONObject recibidoServidor;
-
-    String nombreUsuario = "manu";
-    String mensaje = "Hola acabo de entrar";
-    boolean privacidad = false;
-
-    String id = "";
-    String getMensaje = "";
-    String dest = "";
-    String checkBox = "";
-
-
+    JSONObject jsonEnvio;
+    JSONObject jsonRecepcion;
+    String nombreUsuario = "";
+    String mensaje = "";
+    String idReceptor = "";
+    String mensajeReceptor = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +46,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,18 +54,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         .setAction("Action", null).show();
             }
         });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
-
+        //Llama al metodo nombreUsuario para introducir el nombre
         nombreUsuario();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
-
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -84,59 +73,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
         int id = item.getItemId();
-
         if (id == R.id.nav_camera) {
-            //Llamada al metodo webSocket
-            //connectWebSocket();
             nombreUsuario();
             Toast.makeText(MainActivity.this, "Conexion"+nombreUsuario, Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_gallery) {
-
         } else if (id == R.id.nav_slideshow) {
-
         } else if (id == R.id.nav_manage) {
-
         } else if (id == R.id.nav_share) {
-
         } else if (id == R.id.nav_send) {
-
         }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
     /**
-     * Metodo para conectar el webSocket en el servidor
+     * Metodo para conectar con el servidor.
+     * Llama al metodo enviarId y crea un hilo para la recepcion de mensajes.
      */
     private void connectWebSocket() {
         URI uri;
@@ -146,7 +115,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
             return;
         }
-
         Map<String, String> headers = new HashMap<>();
         clienteWS = new WebSocketClient(uri, new Draft_17(), headers, 0){
             @Override
@@ -157,30 +125,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                //clienteWS.send("Hello from " + Build.MANUFACTURER + " " + Build.MODEL);
             }
-
             @Override
             public void onMessage(final String s) {
-                final String mensajeRecibidoS = s;
+                final String mensajeRecibidos = s;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             TextView ListaMensajes = (TextView) findViewById(R.id.messages);
-                            ListaMensajes.append(recibeMensaje(mensajeRecibidoS) + "\n");
+                            ListaMensajes.append(recibeMensaje(mensajeRecibidos) + "\n");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     }
                 });
             }
-
             @Override
             public void onClose(int i, String s, boolean b) {
                 Log.i("Websocket", "Closed " + s);
             }
-
             @Override
             public void onError(Exception e) {
                 Log.i("Websocket", "Error " + e.getMessage());
@@ -188,73 +152,67 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         };
         clienteWS.connect();
     }
-
     /**
-     * Envia el usuario, el mensaje y la privacidad.
+     * Envia el usuario y el mensaje en la conexion.
      * @throws JSONException
      */
     public void enviarId () throws JSONException {
-        envioCliente = new JSONObject();
-        envioCliente.put("id", nombreUsuario);
-        clienteWS.send(envioCliente.toString());
+        jsonEnvio = new JSONObject();
+        jsonEnvio.put("id", nombreUsuario);
+        clienteWS.send(jsonEnvio.toString());
     }
-
+    /**
+     * Envia el usuario y el mensaje cada vez que se pulsa el boton enviar.
+     * Cambia el valor del editText mensaje.
+     * @param view
+     * @throws JSONException
+     */
     public void enviarMensaje(View view) throws JSONException {
-
-        EditText editText = (EditText)findViewById(R.id.message);
-        mensaje = editText.getText().toString();
-
-        envioCliente = new JSONObject();
-        envioCliente.put("id", nombreUsuario);
-        envioCliente.put("msg", mensaje);
-        envioCliente.put("privado", privacidad);
-        envioCliente.put("dts", "ALL");
-
-        editText.setText("");
-        clienteWS.send(envioCliente.toString());
-
+        EditText valorCajonMensaje = (EditText)findViewById(R.id.message);
+        mensaje = valorCajonMensaje.getText().toString();
+        jsonEnvio = new JSONObject();
+        jsonEnvio.put("id", nombreUsuario);
+        jsonEnvio.put("msg", mensaje);
+        valorCajonMensaje.setText("");
+        clienteWS.send(jsonEnvio.toString());
     }
-
+    /**
+     *
+     * @param s
+     * @return devuelve el mensaje a mostrar.
+     * @throws JSONException
+     */
     public String recibeMensaje(String s) throws JSONException {
-        recibidoServidor = new JSONObject(s);
-        id = recibidoServidor.getString("id");
-        getMensaje = recibidoServidor.getString("msg");
-
-        String mensaje = id + ": " + getMensaje;
+        jsonRecepcion = new JSONObject(s);
+        idReceptor = jsonRecepcion.getString("id");
+        mensajeReceptor = jsonRecepcion.getString("msg");
+        String mensaje = idReceptor + ": " + mensajeReceptor;
         return mensaje;
     }
-
     /**
-     * Crea un AlertDialog con el que introducir el nombre de usuario.
+     * Crea un AlertDialog en el que introducir el nombre de usuario.
      * Si no se escribe un nombre se da por defecto el valor "User Default" a la variable nombreUsuario.
      */
     public void nombreUsuario (){
         final AlertDialog.Builder alertaUsuario = new AlertDialog.Builder(this);
         alertaUsuario.setTitle("Nombre usuario");
-
-        final EditText nombreUsuario2 = new EditText(this);
-        alertaUsuario.setView(nombreUsuario2);
-
+        final EditText nombreUsuarioRecogido = new EditText(this);
+        alertaUsuario.setView(nombreUsuarioRecogido);
         alertaUsuario.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if ((nombreUsuario2.getText().toString()).equals("")){
+                if ((nombreUsuarioRecogido.getText().toString()).equals("")){
                     nombreUsuario = "User Default";
-                    Toast.makeText(MainActivity.this, "Conectado como: "+nombreUsuario, Toast.LENGTH_SHORT).show();
-                    connectWebSocket();
                 }
                 else {
-                    nombreUsuario = nombreUsuario2.getText().toString();
-                    Toast.makeText(MainActivity.this, "Conectado como: "+nombreUsuario, Toast.LENGTH_SHORT).show();
-                    //Llamada al metodo webSocket
-                    connectWebSocket();
+                    nombreUsuario = nombreUsuarioRecogido.getText().toString();
                 }
-
+                //Llamada al metodo webSocket
+                connectWebSocket();
+                Toast.makeText(MainActivity.this, "Conectado como: "+nombreUsuario, Toast.LENGTH_SHORT).show();
             }
         });
         alertaUsuario.create();
         alertaUsuario.show();
     }
-
-
 }

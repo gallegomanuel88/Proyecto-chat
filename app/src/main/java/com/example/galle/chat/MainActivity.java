@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void run() {
                         try {
-                            TextView ListaMensajes = (TextView) findViewById(R.id.messages);
+                            TextView ListaMensajes = (TextView) findViewById(R.id.mensajesMostrados);
                             ListaMensajes.append(recibeMensaje(mensajeRecibidos) + "\n");
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * @throws JSONException
      */
     public void enviarMensaje(View view) throws JSONException {
-        EditText valorCajonMensaje = (EditText)findViewById(R.id.message);
+        EditText valorCajonMensaje = (EditText)findViewById(R.id.mensajeEnviar);
         mensaje = valorCajonMensaje.getText().toString();
         jsonEnvio = new JSONObject();
         jsonEnvio.put("id", nombreUsuario);
